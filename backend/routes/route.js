@@ -10,6 +10,7 @@ import * as authController from '../controllers/auth.js';
 import * as userController from '../controllers/user.js';
 import * as studioController from '../controllers/studio.js';
 import * as bookingController from '../controllers/booking.js';
+import * as instrumentController from '../controllers/instrument.js';
 
 // ============================================
 // AUTHENTICATION ROUTES
@@ -76,5 +77,15 @@ router.get('/bookings/user', auth, (req, res) => {
 router.get('/bookings/:bookingId', auth, (req, res) => {
   bookingController.getBookingById(req, res);
 });
+
+// Instrument rental routes
+router.post('/rentals', auth, instrumentRentalController.createRental);
+router.get('/rentals/user', auth, instrumentRentalController.getUserRentals);
+router.get('/rentals/:rentalId', auth, instrumentRentalController.getRentalById);
+router.put('/rentals/:rentalId/status', auth, instrumentRentalController.updateRentalStatus);
+router.put('/rentals/:rentalId/payment', auth, isAdmin, instrumentRentalController.updatePaymentStatus);
+router.get('/instruments/:instrumentId/rentals', auth, isAdmin, instrumentRentalController.getInstrumentRentals);
+router.get('/rentals', auth, isAdmin, instrumentRentalController.getAllRentals);
+router.put('/rentals/:rentalId/cancel', auth, instrumentRentalController.cancelRental);
 
 export default router;
