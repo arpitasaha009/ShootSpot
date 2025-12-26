@@ -1,7 +1,8 @@
 // routes/route.js
 import express from 'express';
 import { auth } from '../middleware/auth.js';
-import { upload } from '../controllers/media.js';
+import { upload, uploadMultipleImages } from '../controllers/media.js';
+import { isAdmin } from '../middleware/isAdmin.js';
 
 const router = express.Router();
 
@@ -10,6 +11,9 @@ import * as authController from '../controllers/auth.js';
 import * as userController from '../controllers/user.js';
 import * as studioController from '../controllers/studio.js';
 import * as bookingController from '../controllers/booking.js';
+import * as instrumentController from '../controllers/instrument.js';
+import * as productController from '../controllers/product.js';
+import * as cartController from '../controllers/cart.js';
 
 // ============================================
 // AUTHENTICATION ROUTES
@@ -76,5 +80,55 @@ router.get('/bookings/user', auth, (req, res) => {
 router.get('/bookings/:bookingId', auth, (req, res) => {
   bookingController.getBookingById(req, res);
 });
+
+// Instrument rental routes
+router.post('/rentals', auth, instrumentRentalController.createRental);
+router.get('/rentals/user', auth, instrumentRentalController.getUserRentals);
+router.get('/rentals/:rentalId', auth, instrumentRentalController.getRentalById);
+router.put('/rentals/:rentalId/status', auth, instrumentRentalController.updateRentalStatus);
+router.put('/rentals/:rentalId/payment', auth, isAdmin, instrumentRentalController.updatePaymentStatus);
+router.get('/instruments/:instrumentId/rentals', auth, isAdmin, instrumentRentalController.getInstrumentRentals);
+router.get('/rentals', auth, isAdmin, instrumentRentalController.getAllRentals);
+router.put('/rentals/:rentalId/cancel', auth, instrumentRentalController.cancelRental);
+
+// ============================================
+// PRODUCT ROUTES
+// ============================================
+// Public routes
+router.get('/products', productController.getProducts);
+router.get('/products/categories', productController.getCategories);
+router.get('/products/brands', productController.getBrands);
+router.get('/products/:id', productController.getProductById);
+
+// Admin routes
+router.post(
+  '/products',
+  auth,
+  isAdmin,
+  upload.array('images', 5),
+  uploadMultipleImages,
+  productController.createProduct
+);
+
+router.put(
+  '/products/:id',
+  auth,
+  isAdmin,
+  upload.array('images', 5),
+  uploadMultipleImages,
+  productController.updateProduct
+);
+
+router.delete('/products/:id', auth, isAdmin, productController.deleteProduct);
+
+// ============================================
+// CART ROUTES
+// ============================================
+// All cart routes require authentication
+router.get('/cart', auth, cartController.getCart);
+router.post('/cart/add', auth, cartController.addToCart);
+router.put('/cart/update', auth, cartController.updateCartItem);
+router.delete('/cart/remove/:productId', auth, cartController.removeCartItem);
+router.delete('/cart/clear', auth, cartController.clearCart);
 
 export default router;

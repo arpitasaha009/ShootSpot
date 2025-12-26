@@ -44,7 +44,5 @@ function App() {
     </Router>
   );
 }
-import BookingConfirmation from './pages/BookingConfirmation';
 
-<Route path="/booking-confirmation/:bookingId" element={<BookingConfirmation />} />
 export default App;
