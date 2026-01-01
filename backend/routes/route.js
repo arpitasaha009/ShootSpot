@@ -100,6 +100,14 @@ router.get('/products/categories', productController.getCategories);
 router.get('/products/brands', productController.getBrands);
 router.get('/products/:id', productController.getProductById);
 
+// Product review routes
+router.get('/products/:id/reviews', productController.getProductReviews);
+
+// Protected review routes (require authentication)
+router.post('/products/:id/reviews', auth, productController.addReview);
+router.put('/products/:id/reviews/:reviewId', auth, productController.updateReview);
+router.delete('/products/:id/reviews/:reviewId', auth, productController.deleteReview);
+
 // Admin routes
 router.post(
   '/products',
@@ -130,5 +138,34 @@ router.post('/cart/add', auth, cartController.addToCart);
 router.put('/cart/update', auth, cartController.updateCartItem);
 router.delete('/cart/remove/:productId', auth, cartController.removeCartItem);
 router.delete('/cart/clear', auth, cartController.clearCart);
+router.post('/cart/apply-loyalty', auth, cartController.applyLoyaltyDiscount);
+
+// ============================================
+// CHECKOUT & ORDER ROUTES
+// ============================================
+router.post('/checkout', auth, cartController.checkout);
+router.get('/orders', auth, cartController.getOrders);
+router.get('/orders/:orderId', auth, cartController.getOrderById);
+
+// ============================================
+// LOYALTY ROUTES
+// ============================================
+router.get('/loyalty/points', auth, async (req, res) => {
+  try {
+    const User = await import('../models/user.js');
+    const user = await User.default.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ 
+      points: user.loyaltyPoints,
+      tier: user.loyaltyTier,
+      totalSpent: user.totalSpent
+    });
+  } catch (error) {
+    console.error('Error fetching loyalty points:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 export default router;

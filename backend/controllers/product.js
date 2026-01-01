@@ -303,3 +303,217 @@ export const deleteProduct = async (req, res) => {
     });
   }
 };
+
+// Add a review to a product
+export const addReview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+    const userId = req.user._id;
+    const userName = req.user.name || `${req.user.firstName} ${req.user.lastName}`;
+    
+    const product = await Product.findById(id);
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+    
+    // Check if user already reviewed this product
+    const existingReview = product.reviews.find(
+      review => review.user.toString() === userId.toString()
+    );
+    
+    if (existingReview) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already reviewed this product'
+      });
+    }
+    
+    // Add new review
+    const newReview = {
+      user: userId,
+      userName,
+      rating: Number(rating),
+      comment,
+      createdAt: new Date()
+    };
+    
+    product.reviews.push(newReview);
+    
+    // Recalculate average rating
+    const totalRating = product.reviews.reduce((sum, rev) => sum + rev.rating, 0);
+    product.averageRating = totalRating / product.reviews.length;
+    
+    await product.save();
+    
+    res.status(201).json({
+      success: true,
+      message: 'Review added successfully',
+      reviews: product.reviews,
+      averageRating: product.averageRating
+    });
+  } catch (error) {
+    console.error('Error adding review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// Get reviews for a product
+export const getProductReviews = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const product = await Product.findById(id);
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      reviews: product.reviews,
+      averageRating: product.averageRating,
+      totalReviews: product.reviews.length
+    });
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// Update a review
+export const updateReview = async (req, res) => {
+  try {
+    const { id, reviewId } = req.params;
+    const { rating, comment } = req.body;
+    const userId = req.user._id;
+    
+    const product = await Product.findById(id);
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+    
+    const review = product.reviews.id(reviewId);
+    
+    if (!review) {
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found'
+      });
+    }
+    
+    // Check if user owns the review
+    if (review.user.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this review'
+      });
+    }
+    
+    // Update review
+    if (rating) review.rating = Number(rating);
+    if (comment) review.comment = comment;
+    review.createdAt = new Date();
+    
+    // Recalculate average rating
+    const totalRating = product.reviews.reduce((sum, rev) => sum + rev.rating, 0);
+    product.averageRating = totalRating / product.reviews.length;
+    
+    await product.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Review updated successfully',
+      reviews: product.reviews,
+      averageRating: product.averageRating
+    });
+  } catch (error) {
+    console.error('Error updating review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// Delete a review
+export const deleteReview = async (req, res) => {
+  try {
+    const { id, reviewId } = req.params;
+    const userId = req.user._id;
+    
+    const product = await Product.findById(id);
+    
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+    
+    const review = product.reviews.id(reviewId);
+    
+    if (!review) {
+      return res.status(404).json({
+        success: false,
+        message: 'Review not found'
+      });
+    }
+    
+    // Check if user owns the review or is admin
+    const isAdmin = req.user.role === 'admin';
+    if (review.user.toString() !== userId.toString() && !isAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this review'
+      });
+    }
+    
+    // Remove review
+    product.reviews.pull(reviewId);
+    
+    // Recalculate average rating
+    if (product.reviews.length > 0) {
+      const totalRating = product.reviews.reduce((sum, rev) => sum + rev.rating, 0);
+      product.averageRating = totalRating / product.reviews.length;
+    } else {
+      product.averageRating = 0;
+    }
+    
+    await product.save();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Review deleted successfully',
+      reviews: product.reviews,
+      averageRating: product.averageRating
+    });
+  } catch (error) {
+    console.error('Error deleting review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};

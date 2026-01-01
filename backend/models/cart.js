@@ -29,6 +29,19 @@ const cartSchema = new mongoose.Schema({
     required: true,
     default: 0
   },
+  // Loyalty discount fields
+  loyaltyDiscount: {
+    type: Number,
+    default: 0
+  },
+  loyaltyPointsUsed: {
+    type: Number,
+    default: 0
+  },
+  finalTotal: {
+    type: Number,
+    default: 0
+  },
   updatedAt: {
     type: Date,
     default: Date.now

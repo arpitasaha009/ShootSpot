@@ -48,10 +48,17 @@ const Navbar = () => {
           Purchase
         </button>
         <button
-        onClick={() => navigate('/users/rentals')}
-        className="bg-transparent border-none text-white text-base cursor-pointer px-4 py-2 transition-opacity hover:opacity-80"
+          onClick={() => navigate('/users/rentals')}
+          className="bg-transparent border-none text-white text-base cursor-pointer px-4 py-2 transition-opacity hover:opacity-80"
         >
-        Rentals
+          Rentals
+        </button>
+        {/* Orders Link */}
+        <button
+          onClick={() => navigate('/orders')}
+          className="bg-transparent border-none text-white text-base cursor-pointer px-4 py-2 transition-opacity hover:opacity-80"
+        >
+          Orders
         </button>
         {/* Only show Collaboration Hub button if user is authenticated and is an artist */}
         {isAuthenticated && isArtist && (

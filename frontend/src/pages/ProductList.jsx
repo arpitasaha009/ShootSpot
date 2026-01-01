@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
 import { toast } from 'react-toastify';
@@ -226,7 +227,7 @@ const addToCart = async (productId) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {products.map(product => (
                 <div key={product._id} className="bg-black/70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-white/30 transition-transform hover:scale-105">
-                  <a href={`/products/${product._id}`}>
+                  <Link to={`/products/${product._id}`}>
                     <img 
                       src={`http://127.0.0.1:5000${product.images[0]}`} 
                       alt={product.name} 
@@ -237,7 +238,7 @@ const addToCart = async (productId) => {
                       <p className="text-white/70 text-sm">{product.brand}</p>
                       <p className="text-blue-400 font-bold mt-2">${product.price.toFixed(2)}</p>
                     </div>
-                  </a>
+                  </Link>
                   <div className="px-4 pb-4">
                     <button
                       onClick={() => addToCart(product._id)}
